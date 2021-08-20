@@ -34,6 +34,21 @@ defmodule ExConductorWeb.UserSettingsController do
     end
   end
 
+  def update(conn, %{"action" => "update_username"} = params) do
+    %{"current_password" => password, "user" => user_params} = params
+    user = conn.assigns.current_user
+
+    case Accounts.update_user_username(user, password, user_params) do
+      {:ok, _user} ->
+        conn
+        |> put_flash(:info, "Username updated successfully.")
+        |> redirect(to: Routes.user_settings_path(conn, :edit))
+
+      {:error, changeset} ->
+        render(conn, "edit.html", username_changeset: changeset)
+    end
+  end
+
   def update(conn, %{"action" => "update_password"} = params) do
     %{"current_password" => password, "user" => user_params} = params
     user = conn.assigns.current_user
@@ -70,5 +85,6 @@ defmodule ExConductorWeb.UserSettingsController do
     conn
     |> assign(:email_changeset, Accounts.change_user_email(user))
     |> assign(:password_changeset, Accounts.change_user_password(user))
+    |> assign(:username_changeset, Accounts.change_user_username(user))
   end
 end
