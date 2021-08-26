@@ -5,7 +5,9 @@ defmodule ExConductorWeb.EnsembleMemberComponent do
     ~L"""
     You are playing <b><%= @instrument[:label] %></b>
 
-    <button id="change-instrument" phx-click="change_instrument">Change instrument</button>
+    <%= if !@score do %>
+      <button id="change-instrument" phx-click="change_instrument">Change instrument</button>
+    <% end %>
     """
   end
 end

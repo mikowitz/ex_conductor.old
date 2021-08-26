@@ -1,0 +1,10 @@
+<%= live_component @socket, CurrentEnsembleComponent, ensemble: @ensemble %>
+
+<%= if !Enum.empty?(@ensemble) do %>
+  <button id="generate-score" phx-click="generate-score">Generate Score</button>
+<% end %>
+<%= if @score do %>
+  <button id="clear-score" phx-click="clear-score">Clear Score</button>
+<% end %>
+
+<%= live_component @socket, ScoreComponent, score: @score %>

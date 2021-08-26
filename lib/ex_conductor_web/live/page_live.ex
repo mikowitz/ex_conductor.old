@@ -3,12 +3,13 @@ defmodule ExConductorWeb.PageLive do
 
   alias ExConductor.Accounts
   alias ExConductor.Accounts.User
-  alias ExConductor.EnsembleRegistry
+  alias ExConductor.{EnsembleRegistry, ScoreRegistry}
   alias ExConductorWeb.Presence
 
   alias ExConductorWeb.JoinEnsembleComponent
   alias ExConductorWeb.EnsembleMemberComponent
   alias ExConductorWeb.CurrentEnsembleComponent
+  alias ExConductorWeb.ScoreComponent
 
   @impl true
   def mount(_params, session, socket) do
@@ -18,13 +19,14 @@ defmodule ExConductorWeb.PageLive do
       add_user(socket, session)
       |> assign_ensemble()
       |> assign_instrument()
+      |> assign_score()
 
     {:ok, socket}
   end
 
   @impl true
   def handle_event("register_instrument", %{"instrument" => instrument}, socket) do
-    send(self(), :after_register)
+    send(self(), :after_change)
 
     inst = EnsembleRegistry.add(socket.assigns.current_user.id, instrument)
 
@@ -39,15 +41,19 @@ defmodule ExConductorWeb.PageLive do
     {:noreply, assign(socket, instrument: nil)}
   end
 
-  @impl true
-
-  def handle_info(:after_register, socket) do
-    ExConductorWeb.Endpoint.broadcast!(Presence.ensemble_topic(), "ensemble_change", %{})
-    {:noreply, socket}
+  def handle_info(%{event: "generated_score", payload: %{score: score}}, socket) do
+    {:noreply, assign(socket, score: score)}
   end
+
+  def handle_info(%{event: "cleared_score"}, socket) do
+    {:noreply, assign(socket, score: nil)}
+  end
+
+  @impl true
 
   def handle_info(:after_change, socket) do
     ExConductorWeb.Endpoint.broadcast!(Presence.ensemble_topic(), "ensemble_change", %{})
+    ExConductorWeb.Endpoint.broadcast!(Presence.ensemble_admin_topic(), "ensemble_change", %{})
     {:noreply, socket}
   end
 
@@ -86,5 +92,12 @@ defmodule ExConductorWeb.PageLive do
 
   def assign_instrument(socket) do
     socket
+  end
+
+  def assign_score(socket) do
+    assign(
+      socket,
+      score: ScoreRegistry.get()
+    )
   end
 end

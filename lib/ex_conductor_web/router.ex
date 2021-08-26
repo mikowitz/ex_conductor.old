@@ -23,6 +23,12 @@ defmodule ExConductorWeb.Router do
     live "/", PageLive, :index
   end
 
+  scope "/admin", ExConductorWeb do
+    pipe_through [:browser, :require_admin_user]
+
+    live "/", AdminLive, :index
+  end
+
   # Other scopes may use custom stacks.
   # scope "/api", ExConductorWeb do
   #   pipe_through :api

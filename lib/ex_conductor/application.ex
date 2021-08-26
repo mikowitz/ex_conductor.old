@@ -16,6 +16,7 @@ defmodule ExConductor.Application do
       # Start the Endpoint (http/https)
       ExConductorWeb.Presence,
       ExConductor.EnsembleRegistry,
+      ExConductor.ScoreRegistry,
       ExConductorWeb.Endpoint
       # Start a worker by calling: ExConductor.Worker.start_link(arg)
       # {ExConductor.Worker, arg}

@@ -23,3 +23,5 @@ config :ex_conductor, ExConductorWeb.Endpoint,
 
 # Print only warnings and errors during test
 config :logger, level: :warn
+
+config :ex_conductor, :png_generator_fn, &Base.encode64/1

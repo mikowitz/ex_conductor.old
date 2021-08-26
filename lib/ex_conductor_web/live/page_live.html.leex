@@ -1,11 +1,17 @@
 <%= if @current_user do %>
   <%= if @instrument do %>
-    <%= live_component @socket, EnsembleMemberComponent, current_user: @current_user, instrument: @instrument %>
+    <%= live_component @socket, EnsembleMemberComponent, current_user: @current_user, instrument: @instrument, score: @score %>
   <% else %>
-    <%= live_component @socket, JoinEnsembleComponent, current_user: @current_user %>
+    <%= if !@score do %>
+      <%= live_component @socket, JoinEnsembleComponent, current_user: @current_user %>
+    <% end %>
   <% end %>
 
   <%= live_component @socket, CurrentEnsembleComponent, ensemble: @ensemble %>
+
+  <%= if @instrument do %>
+    <%= live_component @socket, ScoreComponent, score: @score %>
+  <% end %>
 
 <% else %>
   <%= link "Log in", to: Routes.user_session_path(@socket, :new) %> to join the ensemble.

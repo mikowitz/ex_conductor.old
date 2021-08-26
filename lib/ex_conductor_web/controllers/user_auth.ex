@@ -72,6 +72,12 @@ defmodule ExConductorWeb.UserAuth do
   """
   def log_out_user(conn) do
     user_token = get_session(conn, :user_token)
+
+    if user_token && Accounts.get_user_by_session_token(user_token) do
+      user = Accounts.get_user_by_session_token(user_token)
+      ExConductor.EnsembleRegistry.remove(user.id)
+    end
+
     user_token && Accounts.delete_session_token(user_token)
 
     if live_socket_id = get_session(conn, :live_socket_id) do
@@ -135,6 +141,18 @@ defmodule ExConductorWeb.UserAuth do
       |> put_flash(:error, "You must log in to access this page.")
       |> maybe_store_return_to()
       |> redirect(to: Routes.user_session_path(conn, :new))
+      |> halt()
+    end
+  end
+
+  def require_admin_user(conn, _opts) do
+    if conn.assigns[:current_user] && conn.assigns[:current_user].is_admin do
+      conn
+    else
+      conn
+      |> put_flash(:error, "You must be an admin to access this page.")
+      |> maybe_store_return_to()
+      |> redirect(to: Routes.page_path(conn, :index))
       |> halt()
     end
   end

@@ -57,6 +57,12 @@ defmodule ExConductor.EnsembleRegistry do
       |> Map.delete(id)
       |> reindex!
 
+    ExConductorWeb.Endpoint.broadcast!(
+      ExConductorWeb.Presence.ensemble_topic(),
+      "ensemble_change",
+      %{}
+    )
+
     {:noreply, ensemble}
   end
 

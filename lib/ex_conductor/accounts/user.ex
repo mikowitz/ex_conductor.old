@@ -9,6 +9,7 @@ defmodule ExConductor.Accounts.User do
     field :password, :string, virtual: true
     field :hashed_password, :string
     field :confirmed_at, :naive_datetime
+    field :is_admin, :boolean, default: false
 
     timestamps()
   end
@@ -32,7 +33,7 @@ defmodule ExConductor.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email, :username, :password])
+    |> cast(attrs, [:email, :username, :password, :is_admin])
     |> validate_email()
     |> validate_password(opts)
   end
