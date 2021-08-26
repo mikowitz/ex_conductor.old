@@ -3,6 +3,8 @@ defmodule ExConductorWeb.PageLiveTest do
 
   import Phoenix.LiveViewTest
 
+  alias ExConductor.AccountsFixtures
+
   # test "disconnected and connected render", %{conn: conn} do
   #   {:ok, page_live, disconnected_html} = live(conn, "/")
 
@@ -41,6 +43,39 @@ defmodule ExConductorWeb.PageLiveTest do
       assert has_element?(view, change_button())
 
       assert html =~ ~r/You are playing.*violin/
+    end
+  end
+
+  describe "multiple users" do
+    test "both can see when an instrument is selected", %{conn: conn} do
+      user1 = AccountsFixtures.user_fixture()
+      user2 = AccountsFixtures.user_fixture()
+
+      {:ok, view1, _} = conn |> log_in_user(user1) |> live("/")
+      {:ok, view2, _} = conn |> log_in_user(user2) |> live("/")
+
+      view1
+      |> form("#join-ensemble", instrument: "violin")
+      |> render_submit()
+
+      refute has_element?(view1, join_button())
+      assert has_element?(view2, join_button())
+
+      assert render(view1) =~ ~r/You are playing.*violin/
+      assert render(view2) =~ "violin"
+
+      assert render(view2) =~ ~r/You are playing.*cello/
+      assert render(view2) =~ "cello"
+
+      view2
+      |> form("#join-ensemble", instrument: "cello")
+      |> render_submit()
+
+      refute has_element?(view1, join_button())
+      refute has_element?(view2, join_button())
+
+      assert render(view2) =~ ~r/You are playing.*cello/
+      assert render(view2) =~ "cello"
     end
   end
 
