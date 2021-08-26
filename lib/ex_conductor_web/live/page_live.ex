@@ -77,10 +77,14 @@ defmodule ExConductorWeb.PageLive do
     assign(socket, ensemble: EnsembleRegistry.ensemble())
   end
 
-  def assign_instrument(socket) do
+  def assign_instrument(%{assigns: %{current_user: %User{} = user}} = socket) do
     assign(
       socket,
-      instrument: EnsembleRegistry.for_user(socket.assigns.current_user)
+      instrument: EnsembleRegistry.for_user(user.id)
     )
+  end
+
+  def assign_instrument(socket) do
+    socket
   end
 end

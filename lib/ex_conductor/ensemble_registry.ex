@@ -1,8 +1,6 @@
 defmodule ExConductor.EnsembleRegistry do
   use GenServer
 
-  alias ExConductor.Accounts.User
-
   def start_link(_) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
@@ -11,8 +9,8 @@ defmodule ExConductor.EnsembleRegistry do
     {:ok, %{}}
   end
 
-  def for_user(%User{} = user) do
-    GenServer.call(__MODULE__, {:for_user, user.id})
+  def for_user(id) when is_integer(id) do
+    GenServer.call(__MODULE__, {:for_user, id})
   end
 
   def for_user(_), do: nil
