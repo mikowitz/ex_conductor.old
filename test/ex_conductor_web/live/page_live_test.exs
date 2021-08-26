@@ -64,9 +64,6 @@ defmodule ExConductorWeb.PageLiveTest do
       assert render(view1) =~ ~r/You are playing.*violin/
       assert render(view2) =~ "violin"
 
-      assert render(view2) =~ ~r/You are playing.*cello/
-      assert render(view2) =~ "cello"
-
       view2
       |> form("#join-ensemble", instrument: "cello")
       |> render_submit()
@@ -77,6 +74,26 @@ defmodule ExConductorWeb.PageLiveTest do
       assert render(view2) =~ ~r/You are playing.*cello/
       assert render(view2) =~ "cello"
     end
+
+    test "naming", %{conn: conn} do
+      user1 = AccountsFixtures.user_fixture()
+      user2 = AccountsFixtures.user_fixture()
+
+      {:ok, view1, _} = conn |> log_in_user(user1) |> live("/")
+      {:ok, view2, _} = conn |> log_in_user(user2) |> live("/")
+
+      join(view1, "violin")
+      join(view2, "violin")
+
+      assert render(view1) =~ ~r/You are playing.*violin 1/
+      assert render(view2) =~ ~r/You are playing.*violin 2/
+    end
+  end
+
+  def join(view, instrument) do
+    view
+    |> form("#join-ensemble", instrument: instrument)
+    |> render_submit()
   end
 
   def join_button do

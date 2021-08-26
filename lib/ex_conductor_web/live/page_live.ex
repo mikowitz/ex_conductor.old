@@ -3,6 +3,7 @@ defmodule ExConductorWeb.PageLive do
 
   alias ExConductor.Accounts
   alias ExConductor.Accounts.User
+  alias ExConductor.EnsembleRegistry
   alias ExConductorWeb.Presence
 
   alias ExConductorWeb.JoinEnsembleComponent
@@ -15,50 +16,48 @@ defmodule ExConductorWeb.PageLive do
 
     socket =
       add_user(socket, session)
-      |> assign_presence()
+      |> assign_ensemble()
+      |> assign_instrument()
 
-    {:ok, assign(socket, instrument: Presence.for_user(socket.assigns.current_user)[:instrument])}
+    {:ok, socket}
   end
 
   @impl true
   def handle_event("register_instrument", %{"instrument" => instrument}, socket) do
     send(self(), :after_register)
-    {:noreply, assign(socket, instrument: instrument)}
+
+    inst = EnsembleRegistry.add(socket.assigns.current_user.id, instrument)
+
+    {:noreply, assign(socket, instrument: inst)}
   end
 
   @impl true
   def handle_event("change_instrument", _, socket) do
     send(self(), :after_change)
-    socket = assign_presence(socket)
+
+    EnsembleRegistry.remove(socket.assigns.current_user.id)
     {:noreply, assign(socket, instrument: nil)}
   end
 
   @impl true
-  def handle_info(:after_register, socket) do
-    Presence.track(
-      self(),
-      Presence.ensemble_topic(),
-      to_string(socket.assigns.current_user.id),
-      %{instrument: socket.assigns.instrument}
-    )
 
-    {:noreply, assign_presence(socket)}
+  def handle_info(:after_register, socket) do
+    ExConductorWeb.Endpoint.broadcast!(Presence.ensemble_topic(), "ensemble_change", %{})
+    {:noreply, socket}
   end
 
   def handle_info(:after_change, socket) do
-    Presence.untrack(
-      self(),
-      Presence.ensemble_topic(),
-      to_string(socket.assigns.current_user.id)
-    )
-
-    socket = assign_presence(socket)
-    {:noreply, assign(socket, instrument: nil)}
+    ExConductorWeb.Endpoint.broadcast!(Presence.ensemble_topic(), "ensemble_change", %{})
+    {:noreply, socket}
   end
 
-  def handle_info(%{event: "presence_diff", payload: payload}, socket) do
-    IO.inspect(payload)
-    {:noreply, assign_presence(socket)}
+  def handle_info(%{event: "ensemble_change", payload: _payload}, socket) do
+    socket =
+      socket
+      |> assign_ensemble()
+      |> assign_instrument()
+
+    {:noreply, assign_ensemble(socket)}
   end
 
   defp add_user(socket, session) do
@@ -74,7 +73,14 @@ defmodule ExConductorWeb.PageLive do
 
   defp get_current_user(_), do: nil
 
-  defp assign_presence(socket) do
-    assign(socket, ensemble: Presence.list(Presence.ensemble_topic()))
+  defp assign_ensemble(socket) do
+    assign(socket, ensemble: EnsembleRegistry.ensemble())
+  end
+
+  def assign_instrument(socket) do
+    assign(
+      socket,
+      instrument: EnsembleRegistry.for_user(socket.assigns.current_user)
+    )
   end
 end
