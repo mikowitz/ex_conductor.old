@@ -23,6 +23,7 @@ defmodule ExConductor.Lilypond do
     IO.puts(f, score)
     File.close(f)
 
+    File.mkdir("score")
     System.cmd("lilypond", ["--png", "score.ly"])
     System.cmd("convert", ["-trim", "score.png", "score.png"])
 
@@ -43,8 +44,7 @@ defmodule ExConductor.Lilypond do
     \\new Staff = "#{instrument}" \\with {
       instrumentName = #"#{instrument}"
     } {
-      #{Stream.repeatedly(&generate_note/0) |> Enum.take(8) |> Enum.join(" ")}
-      c'4
+      #{Stream.repeatedly(&generate_note/0) |> Enum.take(20) |> Enum.join(" ")}
     }
     """
   end
