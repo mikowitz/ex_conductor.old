@@ -13,6 +13,7 @@ defmodule ExConductorWeb.PageLive do
 
   @impl true
   def mount(_params, session, socket) do
+    IO.inspect("hello")
     ExConductorWeb.Endpoint.subscribe(Presence.ensemble_topic())
 
     socket =
